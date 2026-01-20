@@ -5,6 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+	server: {
+    // Allows requests from 'my-app.com' and 'sub.my-app.com'
+    allowedHosts: ['devserver-master--magenta-conkies-02a3f4.netlify.app', '.netlify.app'],
+  },
+
   plugins: [
     react(),
 		tailwindcss(),
