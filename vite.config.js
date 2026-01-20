@@ -5,10 +5,6 @@ import { VitePWA } from 'vite-plugin-pwa'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-	server: {
-    // Allows requests from 'my-app.com' and 'sub.my-app.com'
-    allowedHosts: ['devserver-master--magenta-conkies-02a3f4.netlify.app', '.netlify.app'],
-  },
 
   plugins: [
     react(),
@@ -61,5 +57,19 @@ export default defineConfig({
       },
 			
     })
-  ]
-})
+  ],
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          ui: ['dexie', 'xlsx', 'jspdf']
+        }
+      }
+    }
+  },
+  server: {
+    port: 3000
+  }})
