@@ -11,7 +11,6 @@ const Sidebar = ({ activeTab, setActiveTab, label,language,setLanguage}) => {
     { id: 'ventes', label: label.sideVente, icon: '📤' },
     { id: 'stock', label: label.sideStock, icon: '📊' },
     { id: 'export', label: label.sideExport, icon: '💾' },
-    { id: 'produits', label: label.sideProduits, icon: '🛒' },
     { id: 'vendeurs', label: label.sideVendeurs, icon: '🧍🏻' }
   ];
 	const changeLanguage = () => {

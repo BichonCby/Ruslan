@@ -4,6 +4,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import db from '../utils/database';
+import '../styles/Export.css';
 
 const Export = () => {
   const [startDate, setStartDate] = useState('');
@@ -24,7 +25,7 @@ const Export = () => {
       if (exportType === 'achats') {
         const achats = await db.achats
           .where('date')
-          .between(startDate, endDate)
+          .between(startDate, endDate, true, true)
           .toArray();
         
         const achatsWithItems = await Promise.all(
@@ -41,7 +42,7 @@ const Export = () => {
       } else if (exportType === 'ventes') {
         const ventes = await db.ventes
           .where('date')
-          .between(startDate, endDate)
+          .between(startDate, endDate, true, true)
           .toArray();
         
         const ventesWithItems = await Promise.all(
@@ -187,13 +188,69 @@ const Export = () => {
     }
     return 0;
   };
+	// Préparer les données avant le rendu dans votre composant
+	const prepareTableAchats = (achats) => {
+		const tableRows = [];
+		let currentDate = null;
+		let dailyTotal = 0;
+		let periodTotal = 0;
+		
+		achats.forEach((achat) => {
+			// Vérifier si c'est une nouvelle date
+			if (achat.date !== currentDate) {
+				// Ajouter le total de la date précédente si elle existe
+				if (currentDate !== null) {
+					tableRows.push({
+						type: 'total',
+						date: currentDate,
+						total: dailyTotal
+					});
+				}
+				currentDate = achat.date;
+				dailyTotal = 0;
+			}
+			
+			// Ajouter les items
+			achat.items.forEach((item, itemIndex) => {
+				tableRows.push({
+					type: 'item',
+					achat,
+					item,
+					isFirstItem: itemIndex === 0
+				});
+			});
+			
+			// Ajouter au total journalier
+			dailyTotal += achat.total;
+			periodTotal += achat.total;
+		});
+		
+		// Ajouter le total du dernier jour
+		if (currentDate !== null) {
+			tableRows.push({
+				type: 'total',
+				date: currentDate,
+				total: dailyTotal
+			});
+			tableRows.push({
+				type: 'full',
+				date: 'TOTAL',
+				total: periodTotal
+			});
+		}
+		
+		return tableRows;
+	};
+
+	// Dans votre composant
+	const tableData = exportType === 'achats' ? prepareTableAchats(data) : [];
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h1 className="text-2xl font-bold mb-6">Export des Données</h1>
+    <div className="export-container">
+      <h1 className="export-title">Export des Données</h1>
       
       {/* Sélecteurs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+      <div className="stats-container">
         <div>
           <label className="block text-sm font-medium mb-1">Type d'export</label>
           <select
@@ -203,7 +260,6 @@ const Export = () => {
           >
             <option value="achats">Achats</option>
             <option value="ventes">Ventes</option>
-            <option value="stock">Stock</option>
           </select>
         </div>
         
@@ -227,78 +283,56 @@ const Export = () => {
           />
         </div>
         
-        <div className="flex items-end">
-          <button
-            onClick={loadData}
-            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          >
-            Actualiser
-          </button>
-        </div>
-      </div>
-
-      {/* Statistiques */}
-      <div className="mb-6">
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <div className="text-sm text-gray-600">Nombre d'entrées</div>
-              <div className="text-xl font-bold">{data.length}</div>
-            </div>
-            
-            {(exportType === 'achats' || exportType === 'ventes') && (
-              <div>
-                <div className="text-sm text-gray-600">Total {exportType}</div>
-                <div className="text-xl font-bold text-green-600">
-                  {calculateTotals().toFixed(2)} €
-                </div>
-              </div>
-            )}
-            
-            <div>
-              <div className="text-sm text-gray-600">Date d'extraction</div>
-              <div className="text-lg">{new Date().toLocaleDateString('fr-FR')}</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Boutons d'export */}
-      <div className="flex space-x-4 mb-6">
-        <button
+      <div className="stats-container">
+				<button
+					onClick={loadData}
+					className="btn btn-refresh"
+				>
+          <img src="renew.svg" height="40" width="40"></img>
+				</button>
+         <button
           onClick={exportToExcel}
-          className="flex-1 bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 flex items-center justify-center"
+          className="btn btn-refresh"
         >
-          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="stat-icon" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
           </svg>
-          Exporter en Excel
+          <img src="excel.svg" height="40" width="40"></img>
         </button>
-        
         <button
           onClick={exportToPDF}
-          className="flex-1 bg-red-500 text-white p-3 rounded-lg hover:bg-red-600 flex items-center justify-center"
+          className="btn btn-refresh"
         >
-          <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+          <svg className="stat-icon" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
           </svg>
-          Exporter en PDF
+          <img src="pdf.svg" height="40" width="40"></img>
         </button>
       </div>
 
       {/* Aperçu des données */}
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-gray-200" border="1">
+          <thead >
             <tr>
               {exportType === 'achats' && (
                 <>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produit</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantité</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prix</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Heure</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Facture</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Produit</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commission</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantité</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prix unitaire</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total Produit</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vendeur</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commentaire 1</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commentaire 2</th>
                 </>
               )}
               {exportType === 'ventes' && (
@@ -309,55 +343,63 @@ const Export = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
                 </>
               )}
-              {exportType === 'stock' && (
-                <>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Dénomination</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prix Achat</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Prix Vente</th>
-                </>
-              )}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {exportType === 'achats' && data.slice(0, 10).map((achat, idx) => 
-              achat.items.map((item, itemIdx) => (
-                <tr key={`${idx}-${itemIdx}`}>
-                  <td className="px-6 py-4">{achat.date}</td>
-                  <td className="px-6 py-4">{item.type} - {item.denomination}</td>
-                  <td className="px-6 py-4">{item.quantite}</td>
-                  <td className="px-6 py-4">{item.prixUnitaire.toFixed(2)} €</td>
-                  <td className="px-6 py-4">{item.total.toFixed(2)} €</td>
-                  <td className="px-6 py-4">{achat.vendeur}</td>
-                </tr>
-              ))
-            )}
-            
+          <tbody className="bg-green divide-y divide-blue-200">
             {exportType === 'ventes' && data.slice(0, 10).map((vente, idx) => (
               <tr key={idx}>
                 <td className="px-6 py-4">{vente.date}</td>
                 <td className="px-6 py-4">{vente.client}</td>
                 <td className="px-6 py-4">{vente.modePaiement}</td>
-                <td className="px-6 py-4">{vente.total.toFixed(2)} €</td>
+                <td className="px-6 py-4">{vente.total.toFixed(0)} ₽</td>
               </tr>
             ))}
             
-            {exportType === 'stock' && data.slice(0, 10).map((produit, idx) => (
-              <tr key={idx}>
-                <td className="px-6 py-4">{produit.type}</td>
-                <td className="px-6 py-4">{produit.denomination}</td>
-                <td className="px-6 py-4">{produit.stock}</td>
-                <td className="px-6 py-4">{produit.prixAchat.toFixed(2)} €</td>
-                <td className="px-6 py-4">{produit.prixVente.toFixed(2)} €</td>
-              </tr>
-            ))}
-          </tbody>
+					<tr>
+					</tr>
+						{tableData.map((row, index) => {
+							if (row.type === 'item') {
+								const { achat, item, isFirstItem } = row;
+								
+								return (
+									<tr key={`item-${index}`}>
+										<td bgcolor= "#fe293b">{isFirstItem ? achat.date : ''}</td>
+										<td className="px-6 py-4">{isFirstItem ? achat.heure : ''}</td>
+										<td className="prix-cell">{isFirstItem ? achat.total : ''}{isFirstItem ? '₽' : ''}</td>
+										<td className="px-6 py-4">{isFirstItem ? achat.facture : ''}</td>
+										<td className="px-6 py-4">{item.type}</td>
+										<td className="px-6 py-4">{item.denomination}</td>
+										<td className="px-6 py-4">{item.commission}</td>
+										<td className="px-6 py-4">{item.quantite}</td>
+										<td className="prix-cell">{item.prixUnitaire.toFixed(0)} ₽</td>  
+										<td className="prix-cell">{item.total.toFixed(0)} ₽</td>
+										<td className="px-6 py-4">{isFirstItem ? achat.vendeur : ''}</td>
+										<td className="px-6 py-4">{isFirstItem ? achat.commentaire1 : ''}</td>
+										<td className="px-6 py-4">{isFirstItem ? achat.commentaire2 : ''}</td>
+									</tr> 
+								);
+							} else {
+								return (
+									<tr key={`total-${index}`} className="bg-gray-100 font-bold">
+										<td colSpan={2} className="daily-cell">
+											{row.date}
+										</td>
+										<td colSpan={1} className="daily-total-cell">
+											{row.total.toFixed(0)} ₽
+										</td>
+										<td colSpan={10} className="daily-cell">
+											
+										</td>
+									</tr>
+								);
+							}
+						})}
+					</tbody>					
         </table>
         
-        {data.length > 10 && (
+        {data.length > 1000 && (
           <div className="text-center py-4 text-gray-500">
-            {data.length - 10} entrées supplémentaires...
+            {data.length - 1000} entrées supplémentaires...
           </div>
         )}
       </div>

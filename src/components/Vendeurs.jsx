@@ -1,12 +1,14 @@
 // src/components/Vendeurs.jsx
 import React, { useState, useEffect } from 'react';
 import db from '../utils/database';
+import '../styles/Vendeurs.css';
 
-const Vendeurs = () => {
+const Vendeurs = ({label}) => {
   const [produits, setProduits] = useState([]);
   const [vendeurs, setVendeurs] = useState([]);//new
   const [filter, setFilter] = useState('');
   const [editingId, setEditingId] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: 'nom', direction: 'asc' });
   const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
@@ -15,7 +17,22 @@ const Vendeurs = () => {
 
   const loadVendeurs = async () => {
     const vendeursList = await db.vendeurs.toArray();
-    setVendeurs(vendeursList);
+		const achatsList = await db.achats.toArray();
+    // Créer une structure avec le nombre d'achats pour chaque vendeur
+    const vendeursAvecAchats = vendeursList.map(vendeur => {
+      // Compter les achats pour ce vendeur
+      const nombreAchats = achatsList.filter(achat => 
+        achat.vendeur === vendeur.nom
+      ).length;
+      
+      // Retourner un nouvel objet avec les infos du vendeur + nombre d'achats
+      return {
+        ...vendeur,  // conserve toutes les propriétés du vendeur
+        nombreAchats: nombreAchats
+      };
+    });
+    console.log(vendeursAvecAchats);
+    setVendeurs(vendeursAvecAchats);
   };
 
   const handleEdit = (vendeur) => {
@@ -29,6 +46,32 @@ const Vendeurs = () => {
             commissionParDefaut: 5,
           });
 		loadVendeurs();
+  };
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+	const sortedVendeurs = [...vendeurs].sort((a, b) => {
+    if (sortConfig.key === 'nom') {
+			//console.log('par nom');
+      return sortConfig.direction === 'asc' ? a.nom - b.nom : b.nom - a.nom;
+    }
+    if (sortConfig.key === 'nombreAchats') {
+      //console.log('par achat');
+			return sortConfig.direction === 'asc' ? a.nombreAchats - b.nombreAchats : b.nombreAchats - a.nombreAchats;
+    }
+    return 0;
+  });
+
+  const SortIcon = ({ columnKey }) => {
+    if (sortConfig.key !== columnKey) return <span className="sort-icon">↕</span>;
+    return sortConfig.direction === 'asc' 
+      ? <span className="sort-icon">↑</span> 
+      : <span className="sort-icon">↓</span>;
   };
 
   const handleSave = async () => {
@@ -56,59 +99,71 @@ const Vendeurs = () => {
     }
   };
 
-  const filteredVendeurs = vendeurs.filter(vendeur =>
-    vendeur.nom.toLowerCase().includes(filter.toLowerCase())
-  );
+  const filteredVendeurs = sortedVendeurs.filter(vendeur => {
+		//console.log('on va filtrer'+sortConfig.direction);
+    return vendeur.nom.toLowerCase().includes(filter.toLowerCase())
+  });
 
   return (
-    <div className="common-bg">
-      <h1 className="common-title">Vendeurs</h1>
+    <div className="vendeurs-container">
+      <h1 className="vendeurs-title">Vendeurs</h1>
       
       {/* Statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="text-sm text-gray-600">Nombre de vendeurs</div>
-          <div className="text-2xl font-bold">{vendeurs.length}</div>
+      <div className="stats-container">
+        <div className="stat-card">
+          <div className="stat-label">Nombre de vendeurs</div>
+          <div className="stat-value">{vendeurs.length}</div>
         </div>
-				<button
-              type="button"
-              onClick={addNewSeller}
-              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
-              + Ajouter un vendeur
-        </button>
 
       </div>
+			<button
+						type="button"
+						onClick={addNewSeller}
+						className="btn btn-refresh"
+					>
+						+ Ajouter un vendeur
+			</button>
 
       {/* Filtre */}
-      <div className="mb-6">
-        <input
-          type="text"
-          className="w-full p-3 border rounded-lg"
-          placeholder="Rechercher par type ou dénomination..."
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-        />
+      <div className="controls-container">
+				<div className="search-container">
+					<input
+						type="text"
+						className="search-input"
+						placeholder={label.recherche}
+						value={filter}
+						onChange={(e) => setFilter(e.target.value)}
+					/>
+				</div>
       </div>
 
       {/* Tableau des produits */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="table-container">
+        <table className="vendeurs-table">
+          <thead>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nom</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Commission</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">nombre achats</th>
+              <th 
+								className="table-header sortable"
+								onClick={() => handleSort('nom')}
+								>
+								{label.nom}<SortIcon columnKey="nom" />
+							</th>
+              <th 
+								className="table-header sortable"
+								onClick={() => handleSort('nombreAchats')}
+								>
+								{label.nombreAchats}<SortIcon columnKey="nombreAchats" />
+							</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {filteredVendeurs.map((vendeur) => (
               editingId === vendeur.id ? (
-                <tr key={vendeur.id} className="bg-yellow-50">
-                  <td className="px-6 py-4">
+                <tr key={vendeur.id} className="editing-row">
+                  <td>
                     <input
                       type="text"
-                      className="w-full p-2 border rounded"
+                      className="edit-input"
                       value={editForm.nom}
                       onChange={(e) => setEditForm({...editForm, nom: e.target.value})}
                     />
@@ -116,9 +171,9 @@ const Vendeurs = () => {
                   <td className="px-6 py-4">
                     <input
                       type="text"
-                      className="w-full p-2 border rounded"
-                      value={editForm.commissionParDefaut}
-                      onChange={(e) => setEditForm({...editForm, commissionParDefaut: e.target.value})}
+                      className="edit-input"
+                      value={editForm.nombreAchats}
+                      onChange={(e) => setEditForm({...editForm, nombreAchats: e.target.value})}
                     />
                   </td>
                   <td className="px-6 py-4">
@@ -138,21 +193,24 @@ const Vendeurs = () => {
                 </tr>
               ) : (
                 <tr key={vendeur.id}>
-                  <td className="px-6 py-4">{vendeur.nom}</td>
-                  <td className="px-6 py-4">{vendeur.commissionParDefaut}</td>
-                  <td className="px-6 py-4">nb achats</td>
-                  <td className="px-6 py-4">
+                  <td className="valeur-display">{vendeur.nom}</td>
+                  <td className="valeur-display">{vendeur.nombreAchats}</td>
+                  <td className="valeur-display">
                     <button
                       onClick={() => handleEdit(vendeur)}
-                      className="text-blue-600 hover:text-blue-800 mr-3"
+                      className="btn-action btn-edit"
+											title={label.modifier}
                     >
-                      Modifier
+                      <span className="action-icon">✏️</span>
+                      {label.modifier}
                     </button>
                     <button
                       onClick={() => handleDelete(vendeur.id)}
-                      className="text-red-600 hover:text-red-800"
+                      className="btn-action btn-delete"
+											title={label.supprimer}
                     >
-                      Supprimer
+                      <span className="action-icon">🗑️</span>
+                      {label.supprimer}
                     </button>
                   </td>
                 </tr>
@@ -163,7 +221,7 @@ const Vendeurs = () => {
       </div>
 
       {filteredVendeurs.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
+        <div className="empty-title">
           Aucun vendeur trouvé
         </div>
       )}

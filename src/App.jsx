@@ -6,7 +6,6 @@ import Achats from './components/Achats';
 import Ventes from './components/Ventes';
 import Stock from './components/Stock';
 import Export from './components/Export';
-import Produits from './components/Produits';
 import Vendeurs from './components/Vendeurs';
 import './styles/App.css';
 import labels from './utils/label'
@@ -94,10 +93,8 @@ function App() {
         return <Stock label={label} />;
       case 'export':
         return <Export />;
-      case 'produits':
-        return <Produits />;
       case 'vendeurs':
-        return <Vendeurs />;
+        return <Vendeurs label={label} />;
       default:
         return (
           <div className="no-content">

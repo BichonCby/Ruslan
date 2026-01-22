@@ -6,7 +6,7 @@ const db = new Dexie('MagasinDB');
 // Définition des schémas
 db.version(1).stores({
   produits: '++id, type, denomination, stock, prixAchat, prixVente, commission',
-  achats: '++id, date, heure, facture, vendeur, estPaye, datePaiement, total, commentaire1, commentaire2',
+  achats: '++id, date, heure, facture, vendeurId, vendeur, estPaye, datePaiement, total, commentaire1, commentaire2',
   achatItems: '++id, achatId, produitId, type, denomination, quantite, prixUnitaire, total',
   ventes: '++id, date, heure, facture, modePaiement, commissionCarte, total, commentaire1, commentaire2',
   venteItems: '++id, venteId, produitId, type, denomination, quantite, prixUnitaire, prixAchatUnitaire, total, commentaire',

@@ -55,6 +55,8 @@ const labels = {
 		aucunProduit:'Aucun produit trouvé',
 		effacerFiltres:'Effacer les filtres',
 		actions:'Actions',
+		nom:'Nom',
+		nombreAchats:'Nombre d\'Achats',
 	},
 	ru :{
 		title : 'Мой магазин',
@@ -109,6 +111,8 @@ const labels = {
 		aucunProduit:'Нет товаров',
 		effacerFiltres:'Очистить фильтры',
 		actions:'Действия',
+		nom:'Имя',
+		nombreAchats:'Nombre d\'Achats',
 	}
 };
 

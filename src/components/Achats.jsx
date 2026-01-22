@@ -31,6 +31,7 @@ const Achats = ({label}) => {
     heure: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
 		isNewVendeur:false,
     vendeur: '',
+    vendeurId: '',
 		facture: '',
     estPaye: false,
     datePaiement: '',
@@ -178,12 +179,11 @@ async function createVendeur(formData){
 		else {
 			await db.vendeurs.add({
 				nom: formData.vendeur,
-				commissionParDefaut: 0
+//				commissionParDefaut: 0
 			});
 		}
 		loadVendeurs();
 		formData.isNewVendeur=false;
-
   };
 
   const calculateTotalAchat = () => {
@@ -338,8 +338,9 @@ async function createVendeur(formData){
 									if (e.target.value === 'new'){
 										setFormData({...formData, isNewVendeur: true});
 									} else {
-										setFormData({...formData, isNewVendeur: false});
-										setFormData({...formData, vendeur: e.target.value});
+										const selectedVendeur = vendeurs.find(v => v.nom === e.target.value);
+										//console.log('target '+selectedVendeur.id);
+										setFormData({...formData, vendeur: e.target.value, isNewVendeur: false,vendeurId: selectedVendeur.id});
 									}
 									console.log('new vendeur '+formData.isNewVendeur);
 								}}
@@ -360,7 +361,10 @@ async function createVendeur(formData){
 										type="text"
 										className="form-input"
 										value={formData.vendeur}
-										onChange={(e) => setFormData({...formData, vendeur: e.target.value})}
+										onChange={(e) => {
+											const selectedVendeur = vendeurs.find(v => v.nom === e.target.value);
+											setFormData({...formData, vendeur: e.target.value,vendeurId: selectedVendeur.id})
+										}}
 										onKeyDown={(e) => handleKeyDown(e)}
 										placeholder="Ex: Paul"
 										required
