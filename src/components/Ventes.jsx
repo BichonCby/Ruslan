@@ -59,7 +59,7 @@ const Ventes = ({label}) => {
             updatedItem.prixAchatUnitaire = produit.prixAchat;
             updatedItem.total = updatedItem.quantite * produit.prixVente;
 						updatedItem.stockAvAchat = String(produit.stock);
-						updatedItem.commissionVendeur = produit.commission;
+						updatedItem.commissionVendeur = String(produit.commissionVendeur);
           }
         }
         
@@ -109,9 +109,9 @@ const Ventes = ({label}) => {
     const total = venteItems.reduce((sum, item) => sum + (item.total || 0), 0);
     
     // Ajouter commission carte si applicable
-    if (formData.modePaiement === 'carte') {
+  /*  if (formData.modePaiement === 'carte') {
       return total * (1 + formData.commissionCarte / 100);
-    }
+    }*/
     
     return total;
   };
@@ -308,7 +308,7 @@ const Ventes = ({label}) => {
 							<div className="form-label">Commission carte</div>
 							<div className="total-label">
 								{formData.modePaiement === 'carte' 
-									? (calculateTotalVente() * formData.commissionCarte / 100).toFixed(0)
+									? (calculateTotalVente() * formData.commissionCarte / 100).toFixed(2)
 									: '0.00'} ₽
 							</div>
 						</div>
@@ -408,6 +408,7 @@ const Ventes = ({label}) => {
                 <div className="form-group">
                   <label className="form-label">{label.commission} (%)</label>
 									<div>
+										
 										{item.commissionVendeur} %
                   </div>
                 </div>

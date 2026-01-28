@@ -1,7 +1,11 @@
 // src/components/Achats.jsx
 // TODO liste
-// check la facture
+// check la facture et editer
 // si la facture existe, la charger
+// export excel et pdf
+// rajouter si la facture est payee
+// sauvegarder la BD et la charger
+// avant d'ajouter un produit, verifier qu'il n'existe pas 
 
 
 import React, { useState, useEffect } from 'react';
@@ -31,7 +35,7 @@ const Achats = ({label}) => {
     heure: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
 		isNewVendeur:false,
     vendeur: '',
-    vendeurId: '',
+    vendeurId: 0,
 		facture: '',
     estPaye: false,
     datePaiement: '',
@@ -58,9 +62,12 @@ const Achats = ({label}) => {
   const loadAchats = async () => { // on charge surtout pour mettre a jour le dernier numero de facture
     const AchatsList = await db.achats.toArray();
     setAchats(AchatsList);
-		const maxFacture = 1+Math.max(...AchatsList.map(a => Number(a.facture)));
+		let maxFacture=1;
+		if (AchatsList.length>0){
+			maxFacture = 1+Math.max(...AchatsList.map(a => Number(a.facture)))
+		};
 		setFormData({...formData, facture: String(maxFacture)});
-		console.log('max '+maxFacture);
+		//console.log('max '+maxFacture);
   };
 
   const handleItemChange = (id, field, value) => {
@@ -81,6 +88,7 @@ const Achats = ({label}) => {
             updatedItem.denomination = produit.denomination;
             updatedItem.prixUnitaire = produit.prixAchat;
             updatedItem.total = updatedItem.quantite * produit.prixAchat;
+						updatedItem.commissionVendeur = produit.commissionVendeur;
             updatedItem.isNewProduct = false;
           }
         }
@@ -204,9 +212,17 @@ async function createVendeur(formData){
       
       // Créer l'achat principal
       const achatId = await db.achats.add({
-        ...formData,
+        //...formData,
+				date:formData.date,
+				heure:formData.heure,
+				facture:formData.facture,
+				vendeurID:formData.vendeurId,
+				estPaye:formData.estPaye,
+				datePaiement:formData.datePaiement,
+				commentaire1:formData.commentaire1,
+				commentaire2:formData.commentaire2,
         total: totalAchat,
-        dateCreation: new Date()
+ //       dateCreation: new Date()
       });
       
       // Ajouter les items
@@ -221,6 +237,8 @@ async function createVendeur(formData){
             stock: item.quantite,
             prixAchat: item.prixUnitaire,
             prixVente: item.prixUnitaire * 1.5, // Prix par défaut
+						quantite:item.quantite,
+						commissionVendeur: item.commission,
             dateCreation: new Date()
           });
           produitId = newProduitId;
@@ -238,11 +256,11 @@ async function createVendeur(formData){
         await db.achatItems.add({
           achatId,
           produitId,
-          type: item.type,
-          denomination: item.denomination,
+          //type: item.type,
+          //denomination: item.denomination,
           quantite: item.quantite,
           prixUnitaire: item.prixUnitaire,
-          total: item.total,
+          //total: item.total,
           commissionVendeur: item.commissionVendeur,
           //commentaire: item.commentaire
         });
@@ -258,7 +276,7 @@ async function createVendeur(formData){
         denomination: '',
         quantite: 1,
         prixUnitaire: 0,
-        commissionVendeur: 5,
+        commissionVendeur: 0,
         total: 0,
         //commentaire: '',
         isNewProduct: false
@@ -339,8 +357,8 @@ async function createVendeur(formData){
 										setFormData({...formData, isNewVendeur: true});
 									} else {
 										const selectedVendeur = vendeurs.find(v => v.nom === e.target.value);
-										//console.log('target '+selectedVendeur.id);
-										setFormData({...formData, vendeur: e.target.value, isNewVendeur: false,vendeurId: selectedVendeur.id});
+										console.log('target '+selectedVendeur.id);
+										setFormData({...formData, vendeur: selectedVendeur.nom,vendeurId:selectedVendeur.id,isNewVendeur: false});
 									}
 									console.log('new vendeur '+formData.isNewVendeur);
 								}}
@@ -553,7 +571,7 @@ async function createVendeur(formData){
                 <div className="form-group">
                   <label className="form-label">{label.total}</label>
                   <div className="form-display">
-                    {item.total.toFixed(2)} ₽
+                    {item.total.toFixed(0)} ₽
                   </div>
                 </div>
                 

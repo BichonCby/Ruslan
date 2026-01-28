@@ -1,6 +1,6 @@
 /* src/components/Sidebar.css */
 .sidebar {
-  width: 250px;
+  width: 200px;
   background-color: #1f2937;
   color: white;
   min-height: 100vh;
@@ -17,18 +17,28 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+	align-items: center; /* Centers items vertically in a flex container (default row direction) */
 }
 
 .sidebar-title {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: bold;
-  margin-bottom: 32px;
+  background-color: #1f2937;
   color: white;
-  text-align: left;
+	text-align: center;
+	cursor: pointer;
+  border-radius: 50px;
+  padding: 5px 0px 5px 0px;
+  margin: 0;
 }
 
 .sidebar-nav {
   flex: 1;
+}
+.side-lang-btn{
+	font-size: 1rem;
+  font-weight: bold;
+	cursor: pointer;
 }
 
 .sidebar-menu {
@@ -80,6 +90,8 @@
   padding-top: 32px;
   margin-top: auto;
   border-top: 1px solid #374151;
+	align-items : center;
+	justify-content: center;
 }
 
 .sidebar-info {

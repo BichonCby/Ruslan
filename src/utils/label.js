@@ -30,7 +30,7 @@ const labels = {
 		supprimer:'Supprimer',
 		nouveauProduit:'Nouveau produit',
 		type:'Type',
-		denomination:'Dénomination',
+		denomination:'Nom',
 		titleVente:'Nouvelle vente',
 		modePaiement: 'Mode de paiement',
 		liquide:'Liquide',
@@ -57,9 +57,19 @@ const labels = {
 		actions:'Actions',
 		nom:'Nom',
 		nombreAchats:'Nombre d\'Achats',
+		exportData:'Export des données',
+		typeExport:'Type d\'extract',
+		extractAchats:'Achats',
+		extractVentes:'Ventes',
+		dateDebut:'De',
+		dateFin:'A',
+		achat:'achat',
+		vente:'vente',
+		prix:'Prix',
+		gain:'Gain'
 	},
 	ru :{
-		title : 'Мой магазин',
+		title : ' Наш магазин ',
 		sideAchat : 'Покупка',
 		sideVente :'Продажа',
 		sideStock : 'Склад',
@@ -112,7 +122,17 @@ const labels = {
 		effacerFiltres:'Очистить фильтры',
 		actions:'Действия',
 		nom:'Имя',
-		nombreAchats:'Nombre d\'Achats',
+		nombreAchats:'Количество покупки',
+		exportData:'Экстракт Данний',
+		typeExport:'Тип Экстракта',
+		extractAchats:'покупка',
+		extractVentes:'Продажа',
+		dateDebut:'До',
+		dateFin:'С',
+		achat:'покупка',
+		vente:'Продажа',
+		prix:'Цена',
+		gain:'Gain'
 	}
 };
 

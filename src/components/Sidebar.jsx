@@ -24,8 +24,11 @@ const Sidebar = ({ activeTab, setActiveTab, label,language,setLanguage}) => {
   return (
     <div className="sidebar">
       <div className="sidebar-content">
-        <h1 className="sidebar-title">{label.title}</h1>
-        
+				<button
+					onClick={() => setActiveTab('home')}
+				>
+					<h1 className="sidebar-title">{label.title}</h1>
+        </button>
         <nav className="sidebar-nav">
           <ul className="sidebar-menu">
             {tabs.map(tab => (
@@ -48,10 +51,11 @@ const Sidebar = ({ activeTab, setActiveTab, label,language,setLanguage}) => {
             <p className="sidebar-version">Version 1.0</p>
           </div>
 					<button
-						className='side-lang-btn'
+						className='side-lang-btn '
+						
 					  onClick={() => changeLanguage()}
 					>
-						<span> {language}</span>
+						<span> {language==='fr'?'FR':'РУ'}</span>
 						</button>
         </div>
       </div>

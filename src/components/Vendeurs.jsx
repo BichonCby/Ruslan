@@ -31,7 +31,7 @@ const Vendeurs = ({label}) => {
         nombreAchats: nombreAchats
       };
     });
-    console.log(vendeursAvecAchats);
+   // console.log(vendeursAvecAchats);
     setVendeurs(vendeursAvecAchats);
   };
 

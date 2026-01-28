@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { initDatabase } from './utils/database';
 import Sidebar from './components/Sidebar';
 import Achats from './components/Achats';
@@ -11,20 +11,29 @@ import './styles/App.css';
 import labels from './utils/label'
 
 function App() {
-  const [activeTab, setActiveTab] = useState('achats');
+  const [activeTab, setActiveTab] = useState('home');
   const [dbInitialized, setDbInitialized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 	const [language,setLanguage] = useState('fr');
 	const [label,setLabel] = useState(labels.fr);
 	
+  // Utiliser une ref pour éviter les doubles initialisations
+  const initStarted = useRef(false);
+
   useEffect(() => {
     const initializeApp = async () => {
+      // Éviter de démarrer l'initialisation si elle a déjà commencé
+      if (initStarted.current) return;
+      initStarted.current = true;
+      
       setIsLoading(true);
       try {
-        await initDatabase();
-        setDbInitialized(true);
-        setError(null);
+				if (!dbInitialized){
+					await initDatabase();
+					setDbInitialized(true);
+				}
+				setError(null);
       } catch (error) {
         console.error('Erreur d\'initialisation:', error);
         setError('Erreur lors du chargement de la base de données');
@@ -34,17 +43,22 @@ function App() {
     };
     
     initializeApp();
-  }, []);
+    // Cleanup function
+    return () => {
+      // Réinitialiser si le composant est démonté
+      initStarted.current = false;
+    };
+  }, [dbInitialized]);
 
   useEffect(() => {
-		console.log('langue : '+language);
+		//console.log('langue : '+language);
 		if (language == 'fr'){
 			setLabel(labels.fr);
 		}
 		else {
 			setLabel(labels.ru);
 		}
-		console.log('langue : '+language);
+		//console.log('langue : '+language);
 
 	},[language]);
 	
@@ -92,9 +106,18 @@ function App() {
       case 'stock':
         return <Stock label={label} />;
       case 'export':
-        return <Export />;
+        return <Export label={label} />;
       case 'vendeurs':
         return <Vendeurs label={label} />;
+			case 'home':
+				return(
+				<div>
+					<div className="title-home"> {label.title} </div>
+					<div >
+						<img src="couple.jpg" className="center-image"></img>
+					</div>
+        </div>
+					);
       default:
         return (
           <div className="no-content">

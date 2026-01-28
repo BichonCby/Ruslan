@@ -326,6 +326,16 @@
   color: #1e293b;
   text-align: right;
 }
+.date-cell {
+  font-weight: 600;
+  color: #1e293b;
+  text-align: center;
+}
+.facture-cell {
+  font-weight: 200;
+  color: #1e293b;
+  text-align: center;
+}
 
 .daily-cell {
   font-weight: 600;
