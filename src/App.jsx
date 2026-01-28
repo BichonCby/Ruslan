@@ -15,8 +15,8 @@ function App() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-	const [language,setLanguage] = useState('fr');
-	const [label,setLabel] = useState(labels.fr);
+	const [language,setLanguage] = useState('ru');
+	const [label,setLabel] = useState(labels.ru);
 	
   // Utiliser une ref pour éviter les doubles initialisations
   const initStarted = useRef(false);
